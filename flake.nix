@@ -9,6 +9,7 @@
 
   outputs =
     {
+      self,
       agent-skills,
       nixpkgs,
       ...
@@ -50,6 +51,27 @@
           pkgs = import nixpkgs { inherit system; };
         in
         pkgs.nixfmt-tree
+      );
+      checks = forEachSystem (
+        system:
+        let
+          package = self.packages.${system}.default;
+        in
+        {
+          vp-check = package.overrideAttrs (_: {
+            pname = "vp-check";
+            buildPhase = ''
+              runHook preBuild
+              pnpm vp check
+              runHook postBuild
+            '';
+            installPhase = ''
+              runHook preInstall
+              touch $out
+              runHook postInstall
+            '';
+          });
+        }
       );
       packages = forEachSystem (
         system:
