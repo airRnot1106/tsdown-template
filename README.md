@@ -1,23 +1,27 @@
-# vite-plus-starter
+# tsdown-template
 
-A starter for creating a Vite Plus project.
+A template for creating a tsdown project.
 
 ## Development
 
 - Install dependencies:
 
 ```bash
-vp install
+pnpm install
 ```
 
 - Run the unit tests:
 
 ```bash
-vp test
+pnpm vp test
 ```
 
 - Build the library:
 
 ```bash
-vp pack
+pnpm vp run build
 ```
+
+## Agent skills
+
+To add skills, edit `nix/agent-skills/flake.nix`.
