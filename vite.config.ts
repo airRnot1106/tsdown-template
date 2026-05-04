@@ -6,6 +6,9 @@ export default defineConfig({
   // @keep-sorted
   pack: {
     clean: true,
+    define: {
+      'import.meta.vitest': 'undefined',
+    },
     dts: {
       tsgo: true,
     },
@@ -99,5 +102,14 @@ export default defineConfig({
     },
     sortPackageJson: true,
     trailingComma: 'all',
+  },
+  // @keep-sorted
+  test: {
+    include: ['src/**/*.test.{ts,tsx}'],
+    includeSource: ['src/**/*.{ts,tsx}'],
+    passWithNoTests: true,
+    reporters:
+      process.env['GITHUB_ACTIONS'] === 'true' ? ['default', 'github-actions'] : ['default'],
+    watch: false,
   },
 });
