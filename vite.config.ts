@@ -2,7 +2,10 @@ import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
   // @keep-sorted
-  staged: { '*': 'vp check --fix' },
+  staged: {
+    '.github/workflows/**/*.yaml': ['pinact run -u -min-age 7', 'actionlint', 'ghalint run'],
+    '*': 'vp check --fix',
+  },
   // @keep-sorted
   pack: {
     clean: true,
