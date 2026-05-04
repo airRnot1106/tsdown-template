@@ -5,6 +5,7 @@
 .direnv
 # .envrc
 result
+.pre-commit-config.yaml
 
 ### Node ###
 # Logs

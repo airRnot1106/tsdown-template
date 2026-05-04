@@ -4,14 +4,24 @@
       url = "path:./nix/agent-skills";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
       agent-skills,
+      git-hooks,
       nixpkgs,
+      treefmt-nix,
       ...
     }:
     let
@@ -22,61 +32,60 @@
         "x86_64-darwin"
         "x86_64-linux"
       ];
+      pkgsFor =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [
+            (_: prev: {
+              pnpm = prev.pnpm_10.override { nodejs = prev.nodejs_24; };
+            })
+          ];
+        };
+      treefmtEval =
+        system:
+        import ./nix/treefmt {
+          pkgs = pkgsFor system;
+          inherit treefmt-nix;
+        };
+      preCommitCheck =
+        system:
+        import ./nix/pre-commit {
+          pkgs = pkgsFor system;
+          inherit git-hooks self system;
+          src = ./.;
+        };
     in
     {
       devShells = forEachSystem (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = pkgsFor system;
+          preCommit = preCommitCheck system;
         in
         {
           default = pkgs.mkShellNoCC {
             inputsFrom = [ agent-skills.devShells.${system}.default ];
-            packages = with pkgs; [
-              actionlint
-              corepack_24
-              ghalint
-              git
-              gitleaks
-              nodejs-slim_24
-              pinact
-              uv
-            ];
+            inherit (preCommit) shellHook;
+            packages =
+              preCommit.enabledPackages
+              ++ (with pkgs; [
+                git
+                nodejs_24
+                pnpm
+                uv
+              ]);
           };
         }
       );
-      formatter = forEachSystem (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        pkgs.nixfmt-tree
-      );
-      checks = forEachSystem (
-        system:
-        let
-          package = self.packages.${system}.default;
-        in
-        {
-          vp-check = package.overrideAttrs (_: {
-            pname = "vp-check";
-            buildPhase = ''
-              runHook preBuild
-              pnpm vp check
-              runHook postBuild
-            '';
-            installPhase = ''
-              runHook preInstall
-              touch $out
-              runHook postInstall
-            '';
-          });
-        }
-      );
+      formatter = forEachSystem (system: (treefmtEval system).config.build.wrapper);
+      checks = forEachSystem (system: {
+        pre-commit = (preCommitCheck system).check;
+      });
       packages = forEachSystem (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = pkgsFor system;
         in
         {
           default = pkgs.callPackage ./package.nix { };

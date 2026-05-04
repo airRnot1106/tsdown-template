@@ -32,8 +32,7 @@
     "dev": "vp pack --watch",
     "test": "vp test",
     "check": "vp check",
-    "prepublishOnly": "vp run build",
-    "prepare": "vp config"
+    "prepublishOnly": "vp run build"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.8",
@@ -47,6 +46,5 @@
     "typescript": "^6.0.2",
     "unplugin-unused": "^0.5.7",
     "vite-plus": "^0.1.14"
-  },
-  "packageManager": "pnpm@10.33.2"
+  }
 }
