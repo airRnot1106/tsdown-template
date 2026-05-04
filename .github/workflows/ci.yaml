@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: voidzero-dev/setup-vp@4f5aa3e38c781f1b01e78fb9255527cee8a6efa6 # v1.8.0
+        with:
+          node-version: '22'
+          cache: true
+      - run: vp install
+      - run: vp check
+      - run: vp test
+      - run: vp run build
