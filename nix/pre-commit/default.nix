@@ -7,6 +7,7 @@
 }:
 let
   inherit (pkgs.lib) getExe;
+  inherit (self.packages.${system}.default) nativeBuildInputs pnpmDeps;
   basePreCommit = git-hooks.lib.${system}.run {
     inherit src;
     hooks = {
@@ -54,13 +55,7 @@ in
 {
   inherit (basePreCommit) shellHook enabledPackages;
   check = basePreCommit.overrideAttrs (old: {
-    nativeBuildInputs =
-      (old.nativeBuildInputs or [ ])
-      ++ (with pkgs; [
-        nodejs_24
-        pnpm
-        pnpmConfigHook
-      ]);
-    inherit (self.packages.${system}.default) pnpmDeps;
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ nativeBuildInputs;
+    inherit pnpmDeps;
   });
 }
