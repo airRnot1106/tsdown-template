@@ -62,8 +62,8 @@ jobs:
           PARENT_SHA=$(git rev-parse HEAD)
           BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
             --method POST \
-            -f "content=$(cat package.nix)" \
-            -f "encoding=utf-8" \
+            -f "content=$(base64 -w0 < package.nix)" \
+            -f "encoding=base64" \
             --jq '.sha')
           BASE_TREE=$(gh api "repos/${REPO}/git/commits/${PARENT_SHA}" --jq '.tree.sha')
           NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
