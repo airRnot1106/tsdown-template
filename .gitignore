@@ -4,8 +4,10 @@
 ### direnv ###
 .direnv
 # .envrc
-result
+
+### Nix ###
 .pre-commit-config.yaml
+result
 
 ### Node ###
 # Logs
