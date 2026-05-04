@@ -1,10 +1,15 @@
 {
   inputs = {
+    agent-skills = {
+      url = "path:./nix/agent-skills";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
     {
+      agent-skills,
       nixpkgs,
       ...
     }:
@@ -25,6 +30,7 @@
         in
         {
           default = pkgs.mkShellNoCC {
+            inputsFrom = [ agent-skills.devShells.${system}.default ];
             packages = with pkgs; [
               actionlint
               corepack_24
