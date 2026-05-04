@@ -51,5 +51,14 @@
         in
         pkgs.nixfmt-tree
       );
+      packages = forEachSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.callPackage ./package.nix { };
+        }
+      );
     };
 }
