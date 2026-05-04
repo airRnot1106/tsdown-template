@@ -47,6 +47,8 @@ jobs:
       - name: Update pnpmDeps hash
         if: steps.metadata.outputs.package-ecosystem == 'npm_and_yarn'
         run: nix run nixpkgs#nix-update -- --flake --version=skip default
+      # Use the REST API to create a verified commit signed by GitHub on
+      # behalf of the airrnot-ci-bot App.
       - name: Commit & push if package.nix changed
         if: steps.metadata.outputs.package-ecosystem == 'npm_and_yarn'
         env:
@@ -54,13 +56,33 @@ jobs:
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.head_ref }}
         run: |
-          if ! git diff --quiet package.nix; then
-            git config user.name "airrnot-ci-bot[bot]"
-            git config user.email "airrnot-ci-bot[bot]@users.noreply.github.com"
-            git add package.nix
-            git commit -m "chore: update pnpmDeps hash"
-            git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:${BRANCH}"
+          if git diff --quiet package.nix; then
+            exit 0
           fi
+          PARENT_SHA=$(git rev-parse HEAD)
+          BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
+            --method POST \
+            -f "content=$(cat package.nix)" \
+            -f "encoding=utf-8" \
+            --jq '.sha')
+          BASE_TREE=$(gh api "repos/${REPO}/git/commits/${PARENT_SHA}" --jq '.tree.sha')
+          NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
+            --method POST \
+            -f "base_tree=${BASE_TREE}" \
+            -f "tree[][path]=package.nix" \
+            -f "tree[][mode]=100644" \
+            -f "tree[][type]=blob" \
+            -f "tree[][sha]=${BLOB_SHA}" \
+            --jq '.sha')
+          COMMIT_SHA=$(gh api "repos/${REPO}/git/commits" \
+            --method POST \
+            -f "message=chore: update pnpmDeps hash" \
+            -f "tree=${NEW_TREE}" \
+            -f "parents[]=${PARENT_SHA}" \
+            --jq '.sha')
+          gh api "repos/${REPO}/git/refs/heads/${BRANCH}" \
+            --method PATCH \
+            -f "sha=${COMMIT_SHA}"
       # Auto-merge conditions (any one match triggers auto-merge):
       #   1. Any Nix flake input update.
       #   2. Any patch-level version bump (e.g. 1.2.3 -> 1.2.4).
