@@ -6,13 +6,24 @@ updates:
       interval: 'weekly'
     cooldown:
       default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
   - package-ecosystem: 'nix'
     directory: '/'
     schedule:
       interval: 'weekly'
+    groups:
+      nix:
+        patterns: ['*']
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
       interval: 'weekly'
     cooldown:
       default-days: 7
+    groups:
+      npm:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
