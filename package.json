@@ -37,7 +37,7 @@
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.8",
     "@types/node": "^25.9.3",
-    "@typescript/native-preview": "7.0.0-dev.20260506.1",
+    "@typescript/native-preview": "7.0.0-dev.20260621.1",
     "bumpp": "^11.1.0",
     "eslint-plugin-command": "^3.5.2",
     "eslint-plugin-security": "^4.0.1",
